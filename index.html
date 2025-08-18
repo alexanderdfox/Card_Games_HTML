@@ -71,12 +71,12 @@ h1 {
   border-radius:12px;
   position:absolute;
   left:0;
-  display:grid;             /* center emoji perfectly */
+  display:grid;             
   place-items:center;
-  font-size:125px;          /* large emoji */
+  font-size:125px;          
   line-height:1;
   cursor:pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, top 0.2s;
   background: linear-gradient(to bottom, white, whitesmoke);
   border: 2px solid #111;
   box-shadow: 2px 6px 12px rgba(0,0,0,0.5);
@@ -84,7 +84,6 @@ h1 {
   color: black;
 }
 
-/* Hover effect */
 .card:hover {
   transform: translateY(-6px);
   box-shadow: 4px 12px 24px rgba(0,0,0,0.6);
@@ -94,7 +93,6 @@ h1 {
 .suit-red { color:#c62828; }
 .suit-black { color:#111; }
 
-/* --- Deck & Discard --- */
 /* --- Deck & Discard --- */
 #deckPile {
   display:flex;
@@ -119,7 +117,6 @@ h1 {
   cursor:pointer;
 }
 
-/* Discard pile matches card styling */
 #discard {
   width:92px;
   height:140px;
@@ -131,7 +128,7 @@ h1 {
   background: linear-gradient(to bottom, white, whitesmoke);
   border: 2px solid #111;
   box-shadow: 2px 6px 12px rgba(0,0,0,0.5);
-  color: black; /* will be overridden by JS for suit-red / suit-black */
+  color: black;
 }
 
 /* --- Controls --- */
@@ -221,24 +218,24 @@ h1 {
 <div id="game">
   <div class="pilesGrid" id="pilesGrid"></div>
   <div id="deckPile">
-	<div id="deck">🂠</div>
-	<div id="discard">🂠</div>
+    <div id="deck">🂠</div>
+    <div id="discard">🂠</div>
   </div>
   <div id="controls">
-	<button onclick="drawCards(1)">Draw 1 Card</button>
-	<button onclick="drawCards(3)">Draw 3 Cards</button>
-	<button onclick="restart()">New Game</button>
+    <button onclick="drawCards(1)">Draw 1 Card</button>
+    <button onclick="drawCards(3)">Draw 3 Cards</button>
+    <button onclick="restart()">New Game</button>
   </div>
   <div id="message">Click a card to move it to the discard pile. Only same suit or value allowed.</div>
 </div>
 
 <!-- Custom Popup -->
-<div id="popup" class="popup-hidden">
+<div id="popup">
   <div class="popup-content">
-	<span id="popup-close">×</span>
-	<h2 id="popup-title">Title</h2>
-	<p id="popup-message">Message goes here.</p>
-	<div id="popup-buttons"></div>
+    <span id="popup-close">×</span>
+    <h2 id="popup-title">Title</h2>
+    <p id="popup-message">Message goes here.</p>
+    <div id="popup-buttons"></div>
   </div>
 </div>
 
@@ -257,20 +254,19 @@ const values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const emojiDeck = [];
 
 suits.forEach(suit => {
-  values.forEach(value => {
-	let emoji;
-	// Assign the Apple-style emoji for each suit/value
-	if (suit.symbol === '♠') emoji = ['🂡','🂢','🂣','🂤','🂥','🂦','🂧','🂨','🂩','🂪','🂫','🂭','🂮'][values.indexOf(value)];
-	else if (suit.symbol === '♥') emoji = ['🂱','🂲','🂳','🂴','🂵','🂶','🂷','🂸','🂹','🂺','🂻','🂽','🂾'][values.indexOf(value)];
-	else if (suit.symbol === '♣') emoji = ['🃑','🃒','🃓','🃔','🃕','🃖','🃗','🃘','🃙','🃚','🃛','🃝','🃞'][values.indexOf(value)];
-	else if (suit.symbol === '♦') emoji = ['🃁','🃂','🃃','🃄','🃅','🃆','🃇','🃈','🃉','🃊','🃋','🃍','🃎'][values.indexOf(value)];
+  values.forEach((value,i) => {
+    let emoji;
+    if (suit.symbol==='♠') emoji = ['🂡','🂢','🂣','🂤','🂥','🂦','🂧','🂨','🂩','🂪','🂫','🂭','🂮'][i];
+    else if (suit.symbol==='♥') emoji = ['🂱','🂲','🂳','🂴','🂵','🂶','🂷','🂸','🂹','🂺','🂻','🂽','🂾'][i];
+    else if (suit.symbol==='♣') emoji = ['🃑','🃒','🃓','🃔','🃕','🃖','🃗','🃘','🃙','🃚','🃛','🃝','🃞'][i];
+    else if (suit.symbol==='♦') emoji = ['🃁','🃂','🃃','🃄','🃅','🃆','🃇','🃈','🃉','🃊','🃋','🃍','🃎'][i];
 
-	emojiDeck.push({
-	  emoji: emoji,        // colored emoji
-	  suit: suit.symbol,   // ♠ ♥ ♣ ♦
-	  value: value,        // A..K
-	  color: suit.color    // suit-red / suit-black
-	});
+    emojiDeck.push({
+      emoji: emoji,
+      suit: suit.symbol,
+      value: value,
+      color: suit.color
+    });
   });
 });
 
@@ -284,37 +280,35 @@ function setupPiles(){
   const grid=document.getElementById('pilesGrid');
   grid.innerHTML=''; 
   for(let i=0;i<8;i++){
-	piles.push([]);
-	const div=document.createElement('div');
-	div.className='pile';
-	div.id='pile'+i;
-	grid.appendChild(div);
+    piles.push([]);
+    const div=document.createElement('div');
+    div.className='pile';
+    div.id='pile'+i;
+    grid.appendChild(div);
   }
 }
 
 // --- Render ---
 function renderAll(){
   for(let i=0;i<8;i++){
-	const pileDiv=document.getElementById('pile'+i);
-	pileDiv.innerHTML='';
-	const pileData=piles[i];
-	if(pileData.length===0){
-	  const ph=document.createElement('div');
-	  ph.className='pile-placeholder';
-	  ph.innerText='Pile '+(i+1);
-	  pileDiv.appendChild(ph);
-	}
-	pileData.forEach((card,idx)=>{
-	  const c=document.createElement('div');
- 	  // Map each suit to its color class
-	  c.className = 'card ' + card.color; // adds suit-red or suit-black class
-	  c.innerText = card.emoji;
-	  c.style.top=(idx*22)+'px';
-	  c.style.zIndex=idx;
-	  c.innerText = card.emoji;
-	  c.addEventListener('click',(ev)=>{ ev.stopPropagation(); cardToDiscard(i,idx); });
-	  pileDiv.appendChild(c);
-	});
+    const pileDiv=document.getElementById('pile'+i);
+    pileDiv.innerHTML='';
+    const pileData=piles[i];
+    if(pileData.length===0){
+      const ph=document.createElement('div');
+      ph.className='pile-placeholder';
+      ph.innerText='Pile '+(i+1);
+      pileDiv.appendChild(ph);
+    }
+    pileData.forEach((card,idx)=>{
+      const c=document.createElement('div');
+      c.className = 'card ' + card.color;
+      c.innerText = card.emoji;
+      c.style.top = (idx*22)+'px';
+      c.style.zIndex = idx;
+      c.addEventListener('click',(ev)=>{ ev.stopPropagation(); cardToDiscard(i,idx); });
+      pileDiv.appendChild(c);
+    });
   }
   renderDeck();
 }
@@ -323,34 +317,32 @@ function renderDeck(){
   const deckDiv = document.getElementById('deck');
   const discardDiv = document.getElementById('discard');
 
-  // Deck display
   deckDiv.innerText = deck.length ? deck.length + ' 🎴' : '0 🎴';
   
-  // Discard display
-if(discard.length > 0){
+  if(discard.length > 0){
     const lastCard = discard[discard.length-1];
-    discardDiv.className = 'card ' + lastCard.color; // always card + color
+    discardDiv.className = 'card ' + lastCard.color;
     discardDiv.innerText = lastCard.emoji;
     discardDiv.style.fontSize = '125px';
     discardDiv.style.lineHeight = '1';
     discardDiv.style.display = 'grid';
     discardDiv.style.placeItems = 'center';
-} else {
-    discardDiv.className = 'card'; // keep card class
+  } else {
+    discardDiv.className = 'card';
     discardDiv.innerText = '🂠';
-    discardDiv.style.color = 'black'; // default color
-}
+    discardDiv.style.color = 'black';
+  }
 }
 
 // --- Card Logic ---
 function cardToDiscard(pileIndex, cardIndex){
   const card = piles[pileIndex][cardIndex];
   if(discard.length>0){
-	const top = discard[discard.length-1];
-	if(card.suit!==top.suit && card.value!==top.value){
-	  showPopup("Invalid Move ❌","Cannot discard: must match suit or value!", [{text:"OK", onClick:()=>{}}]);
-	  return;
-	}
+    const top = discard[discard.length-1];
+    if(card.suit!==top.suit && card.value!==top.value){
+      showPopup("Invalid Move ❌","Cannot discard: must match suit or value!", [{text:"OK", onClick:()=>{hidePopup();}}]);
+      return;
+    }
   }
   discard.push(card);
   piles[pileIndex].splice(cardIndex,1);
@@ -358,14 +350,14 @@ function cardToDiscard(pileIndex, cardIndex){
 }
 
 function drawCards(count){
-  if(deck.length===0){ showPopup("Deck Empty","No more cards to draw!", [{text:"OK", onClick:()=>{}}]); return; }
+  if(deck.length===0){ showPopup("Deck Empty","No more cards to draw!", [{text:"OK", onClick:()=>{hidePopup();}}]); return; }
   for(let n=0;n<count;n++){
-	if(deck.length===0) break;
-	const card=deck.pop();
-	const minSize=Math.min(...piles.map(p=>p.length));
-	const smallestIndices=piles.map((p,i)=>p.length===minSize?i:-1).filter(i=>i>=0);
-	const targetIndex=smallestIndices[Math.floor(Math.random()*smallestIndices.length)];
-	piles[targetIndex].push(card);
+    if(deck.length===0) break;
+    const card=deck.pop();
+    const minSize=Math.min(...piles.map(p=>p.length));
+    const smallestIndices=piles.map((p,i)=>p.length===minSize?i:-1).filter(i=>i>=0);
+    const targetIndex=smallestIndices[Math.floor(Math.random()*smallestIndices.length)];
+    piles[targetIndex].push(card);
   }
   renderAll();
 }
@@ -377,6 +369,25 @@ function restart(){
   drawCards(8);
   renderAll();
 }
+
+// --- Popup ---
+function showPopup(title,message,buttons){
+  const popup=document.getElementById('popup');
+  document.getElementById('popup-title').innerText = title;
+  document.getElementById('popup-message').innerText = message;
+  const btnContainer=document.getElementById('popup-buttons');
+  btnContainer.innerHTML='';
+  buttons.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className='popup-btn';
+    btn.innerText=b.text;
+    btn.onclick=()=>{ b.onClick(); hidePopup(); };
+    btnContainer.appendChild(btn);
+  });
+  popup.classList.add('popup-show');
+}
+function hidePopup(){ document.getElementById('popup').classList.remove('popup-show'); }
+document.getElementById('popup-close').onclick=hidePopup;
 
 // Initialize game
 createDeck(); setupPiles(); drawCards(8); renderAll();
