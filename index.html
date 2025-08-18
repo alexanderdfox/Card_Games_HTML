@@ -304,8 +304,26 @@ function renderAll(){
 }
 
 function renderDeck(){
-  document.getElementById('deck').innerText = deck.length?deck.length+' 🎴':'0 🎴';
-  document.getElementById('discard').innerText = discard.length?(discard[discard.length-1].emoji):'🂠';
+  const deckDiv = document.getElementById('deck');
+  const discardDiv = document.getElementById('discard');
+
+  // Deck display
+  deckDiv.innerText = deck.length ? deck.length + ' 🎴' : '0 🎴';
+  
+  // Discard display
+  if(discard.length > 0){
+    const lastCard = discard[discard.length-1];
+    discardDiv.innerText = lastCard.emoji;
+    discardDiv.className = 'card ' + lastCard.color; // apply card font & color
+    discardDiv.style.fontSize = '125px'; // same as cards
+    discardDiv.style.lineHeight = '1';
+    discardDiv.style.display = 'grid';
+    discardDiv.style.placeItems = 'center';
+  } else {
+    discardDiv.innerText = '🂠';
+    discardDiv.className = ''; // reset class
+    discardDiv.style.fontSize = '52px'; // original deck size
+  }
 }
 
 // --- Card Logic ---
