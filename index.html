@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎴 Emoji Card Game Deluxe</title>
 <style>
+/* --- Body & Background --- */
 body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
@@ -147,7 +148,7 @@ h1 {
 
 #message { margin-top:10px; color:#fff8; font-size:14px; }
 
-/* Popup */
+/* --- Popup --- */
 #popup {
   position: fixed;
   top:0; left:0; width:100%; height:100%;
@@ -161,8 +162,8 @@ h1 {
   transition: opacity 0.3s ease;
 }
 
-.popup-show {
-  opacity:1;
+#popup.show {
+  opacity: 1;
   pointer-events: auto;
 }
 
@@ -174,7 +175,15 @@ h1 {
   max-width: 320px;
   width: 90%;
   box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-  position: relative;
+  transform: scale(0.8);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  color: black;
+}
+
+#popup.show .popup-content {
+  transform: scale(1);
+  opacity: 1;
 }
 
 #popup-close {
@@ -205,6 +214,17 @@ h1 {
 
 .popup-btn:hover { background:#fb8c00; }
 
+/* --- Animations --- */
+@keyframes winSparkle { 0% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(1.2) rotate(10deg); opacity: 0.8; } 100% { transform: scale(1) rotate(-10deg); opacity: 1; } }
+@keyframes winConfetti { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(600px) rotate(720deg); opacity:0; } }
+@keyframes loseShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-15px) rotate(-5deg); } 50% { transform: translateX(15px) rotate(5deg); } 75% { transform: translateX(-10px) rotate(-3deg); } }
+@keyframes loseFall { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(600px) rotate(360deg); opacity:0; } }
+
+.win-card { animation: winSparkle 0.6s ease-in-out infinite alternate; }
+.confetti { position: absolute; font-size: 40px; animation: winConfetti 1.2s forwards; }
+.lose-shake { animation: loseShake 0.5s; }
+.lose-fall { animation: loseFall 1s forwards; }
+
 </style>
 </head>
 <body>
@@ -212,10 +232,10 @@ h1 {
 <h1>🎴 Emoji Card Game Deluxe</h1>
 
 <div id="game">
-  <!-- Deck & Discard centered above piles -->
+  <!-- Deck & Discard -->
   <div id="deckDiscard">
-    <div id="deck">🂠</div>
-    <div id="discard">🂠</div>
+	<div id="deck">🂠</div>
+	<div id="discard">🂠</div>
   </div>
 
   <!-- Piles Grid -->
@@ -223,9 +243,9 @@ h1 {
 
   <!-- Controls -->
   <div id="controls">
-    <button onclick="drawCards(1)">Draw 1 Card</button>
-    <button onclick="drawCards(3)">Draw 3 Cards</button>
-    <button onclick="restart()">New Game</button>
+	<button onclick="drawCards(1)">Draw 1 Card</button>
+	<button onclick="drawCards(3)">Draw 3 Cards</button>
+	<button onclick="restart()">New Game</button>
   </div>
 
   <div id="message">Click a card to move it to the discard pile. Only same suit or value allowed.</div>
@@ -234,15 +254,15 @@ h1 {
 <!-- Popup -->
 <div id="popup">
   <div class="popup-content">
-    <span id="popup-close">×</span>
-    <h2 id="popup-title">Title</h2>
-    <p id="popup-message">Message goes here.</p>
-    <div id="popup-buttons"></div>
+	<span id="popup-close">×</span>
+	<h2 id="popup-title">Title</h2>
+	<p id="popup-message">Message goes here.</p>
+	<div id="popup-buttons"></div>
   </div>
 </div>
 
 <script>
-// Suits and deck setup (same as before)
+// --- Deck Setup ---
 const suits = [
   {symbol:'♠', color:'suit-black'},
   {symbol:'♥', color:'suit-red'},
@@ -251,28 +271,38 @@ const suits = [
 ];
 const values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const emojiDeck=[];
-suits.forEach(suit=>{ values.forEach((value,i)=>{ 
-  let emoji;
-  if(suit.symbol==='♠') emoji=['🂡','🂢','🂣','🂤','🂥','🂦','🂧','🂨','🂩','🂪','🂫','🂭','🂮'][i];
-  else if(suit.symbol==='♥') emoji=['🂱','🂲','🂳','🂴','🂵','🂶','🂷','🂸','🂹','🂺','🂻','🂽','🂾'][i];
-  else if(suit.symbol==='♣') emoji=['🃑','🃒','🃓','🃔','🃕','🃖','🃗','🃘','🃙','🃚','🃛','🃝','🃞'][i];
-  else if(suit.symbol==='♦') emoji=['🃁','🃂','🃃','🃄','🃅','🃆','🃇','🃈','🃉','🃊','🃋','🃍','🃎'][i];
-  emojiDeck.push({emoji, suit:suit.symbol, value, color:suit.color});
-})});
+suits.forEach(suit=>{
+  values.forEach((value,i)=>{
+	let emoji;
+	if(suit.symbol==='♠') emoji=['🂡','🂢','🂣','🂤','🂥','🂦','🂧','🂨','🂩','🂪','🂫','🂭','🂮'][i];
+	else if(suit.symbol==='♥') emoji=['🂱','🂲','🂳','🂴','🂵','🂶','🂷','🂸','🂹','🂺','🂻','🂽','🂾'][i];
+	else if(suit.symbol==='♣') emoji=['🃑','🃒','🃓','🃔','🃕','🃖','🃗','🃘','🃙','🃚','🃛','🃝','🃞'][i];
+	else if(suit.symbol==='♦') emoji=['🃁','🃂','🃃','🃄','🃅','🃆','🃇','🃈','🃉','🃊','🃋','🃍','🃎'][i];
+	emojiDeck.push({emoji, suit:suit.symbol, value, color:suit.color});
+  });
+});
 
 let deck=[], piles=[], discard=[];
 
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
 function createDeck(){ deck=shuffle([...emojiDeck]); }
 function setupPiles(){ piles=[]; const grid=document.getElementById('pilesGrid'); grid.innerHTML=''; for(let i=0;i<8;i++){ piles.push([]); const div=document.createElement('div'); div.className='pile'; div.id='pile'+i; grid.appendChild(div); } }
 
 function renderAll(){
   for(let i=0;i<8;i++){
-    const pileDiv=document.getElementById('pile'+i);
-    pileDiv.innerHTML='';
-    const pileData=piles[i];
-    if(pileData.length===0){ const ph=document.createElement('div'); ph.className='pile-placeholder'; ph.innerText='Pile '+(i+1); pileDiv.appendChild(ph); }
-    pileData.forEach((card,idx)=>{ const c=document.createElement('div'); c.className='card '+card.color; c.innerText=card.emoji; c.style.top=(idx*22)+'px'; c.style.zIndex=idx; c.addEventListener('click',()=>cardToDiscard(i,idx)); pileDiv.appendChild(c); });
+	const pileDiv=document.getElementById('pile'+i);
+	pileDiv.innerHTML='';
+	const pileData=piles[i];
+	if(pileData.length===0){ const ph=document.createElement('div'); ph.className='pile-placeholder'; ph.innerText='Pile '+(i+1); pileDiv.appendChild(ph); }
+	pileData.forEach((card,idx)=>{ 
+	  const c=document.createElement('div'); 
+	  c.className='card '+card.color; 
+	  c.innerText=card.emoji; 
+	  c.style.top=(idx*22)+'px'; 
+	  c.style.zIndex=idx; 
+	  c.addEventListener('click',()=>cardToDiscard(i,idx)); 
+	  pileDiv.appendChild(c); 
+	});
   }
   renderDeck();
 }
@@ -281,30 +311,135 @@ function renderDeck(){
   const deckDiv=document.getElementById('deck');
   const discardDiv=document.getElementById('discard');
   deckDiv.innerText=deck.length?deck.length+' 🎴':'0 🎴';
-  if(discard.length>0){ const last=discard[discard.length-1]; discardDiv.className='card '+last.color; discardDiv.innerText=last.emoji; discardDiv.style.fontSize='125px'; discardDiv.style.lineHeight='1'; discardDiv.style.display='grid'; discardDiv.style.placeItems='center'; }
-  else { discardDiv.className='card'; discardDiv.innerText='🂠'; discardDiv.style.color='black'; }
+  if(discard.length > 0){
+	  const lastCard = discard[discard.length-1];
+	  discardDiv.style.color = lastCard.color === "suit-red" ? "#c62828" : "#111";
+	  discardDiv.innerText = lastCard.emoji;
+	  discardDiv.style.fontSize = '125px';
+	  discardDiv.style.lineHeight = '1';
+	  discardDiv.style.display = 'grid';
+	  discardDiv.style.placeItems = 'center';
+  } else {
+	  discardDiv.className = 'card'; 
+	  discardDiv.innerText = '🂠';
+	  discardDiv.style.color = 'black';
+  }
 }
 
+// --- Game Logic ---
 function cardToDiscard(pileIndex, cardIndex){
   const card=piles[pileIndex][cardIndex];
-  if(discard.length>0){ const top=discard[discard.length-1]; if(card.suit!==top.suit && card.value!==top.value){ showPopup("Invalid Move ❌","Cannot discard: must match suit or value!",[{text:"OK", onClick:()=>{hidePopup();}}]); return; } }
-  discard.push(card); piles[pileIndex].splice(cardIndex,1); renderAll();
+  if(discard.length>0){ 
+	const top=discard[discard.length-1]; 
+	if(card.suit!==top.suit && card.value!==top.value){ 
+	  showPopup("Invalid Move ❌","Cannot discard: must match suit or value!",[{text:"OK"}]); 
+	  return; 
+	} 
+  }
+  discard.push(card); 
+  piles[pileIndex].splice(cardIndex,1); 
+  renderAll();
+  checkGameState(); 
 }
 
 function drawCards(count){
-  if(deck.length===0){ showPopup("Deck Empty","No more cards to draw!",[{text:"OK", onClick:()=>{hidePopup();}}]); return; }
-  for(let n=0;n<count;n++){ if(deck.length===0) break; const card=deck.pop(); const minSize=Math.min(...piles.map(p=>p.length)); const smallestIndices=piles.map((p,i)=>p.length===minSize?i:-1).filter(i=>i>=0); const targetIndex=smallestIndices[Math.floor(Math.random()*smallestIndices.length)]; piles[targetIndex].push(card); }
+  if(deck.length===0){ showPopup("Deck Empty","No more cards to draw!",[{text:"OK"}]); return; }
+  for(let n=0;n<count;n++){ 
+	if(deck.length===0) break; 
+	const card=deck.pop(); 
+	const minSize=Math.min(...piles.map(p=>p.length)); 
+	const smallestIndices=piles.map((p,i)=>p.length===minSize?i:-1).filter(i=>i>=0); 
+	const targetIndex=smallestIndices[Math.floor(Math.random()*smallestIndices.length)]; 
+	piles[targetIndex].push(card); 
+  }
   renderAll();
+  checkGameState(); 
 }
 
 function restart(){ createDeck(); setupPiles(); discard=[]; drawCards(8); renderAll(); }
 
-// Popup
-function showPopup(title,message,buttons){ const popup=document.getElementById('popup'); document.getElementById('popup-title').innerText=title; document.getElementById('popup-message').innerText=message; const btnContainer=document.getElementById('popup-buttons'); btnContainer.innerHTML=''; buttons.forEach(b=>{ const btn=document.createElement('button'); btn.className='popup-btn'; btn.innerText=b.text; btn.onclick=()=>{b.onClick(); hidePopup();}; btnContainer.appendChild(btn); }); popup.classList.add('popup-show'); }
-function hidePopup(){ document.getElementById('popup').classList.remove('popup-show'); }
-document.getElementById('popup-close').onclick=hidePopup;
+// --- Popup ---
+const popup = document.getElementById('popup');
+const popupContent = popup.querySelector('.popup-content');
+const popupClose = document.getElementById('popup-close');
+const popupTitle = document.getElementById('popup-title');
+const popupMessage = document.getElementById('popup-message');
+const popupButtons = document.getElementById('popup-buttons');
 
-// Init
+popupClose.onclick = hidePopup;
+popup.addEventListener('click', (e)=>{
+  if(e.target === popup) hidePopup();
+});
+
+function showPopup(title, message, buttons){
+  popupTitle.innerText = title;
+  popupMessage.innerHTML = message;
+
+  popupButtons.innerHTML = '';
+  buttons.forEach(b => {
+	const btn = document.createElement('button');
+	btn.className = 'popup-btn';
+	btn.innerText = b.text;
+	btn.onclick = () => { if(b.onClick) b.onClick(); hidePopup(); };
+	popupButtons.appendChild(btn);
+  });
+
+  popup.classList.add('show');
+}
+
+function hidePopup(){
+  popup.classList.remove('show');
+}
+
+// --- Win / Lose Animations ---
+function triggerWin(){
+  const allCards = document.querySelectorAll('.card');
+  allCards.forEach(c => c.classList.add('win-card'));
+
+  for(let i=0;i<30;i++){
+	const conf = document.createElement('div');
+	conf.className='confetti';
+	conf.innerText=['🎉','✨','💫','🪅','🌟'][Math.floor(Math.random()*5)];
+	conf.style.left = Math.random()*window.innerWidth+'px';
+	conf.style.top = '-50px';
+	conf.style.fontSize = (20 + Math.random()*40)+'px';
+	conf.style.animationDuration = (0.8 + Math.random()*0.8)+'s';
+	document.body.appendChild(conf);
+	setTimeout(()=>conf.remove(),1500);
+  }
+
+  showPopup("🎉 You Win!","Congratulations, all moves completed!",[{text:"New Game", onClick:restart}]);
+}
+
+function triggerLose(){
+  const allCards = document.querySelectorAll('.card');
+  allCards.forEach(c => {
+	c.classList.add('lose-shake');
+	setTimeout(()=>c.classList.add('lose-fall'), 500);
+  });
+
+  showPopup("💀 You Lose!","No valid moves left!",[{text:"Try Again", onClick:restart}]);
+}
+
+// --- Game State Check ---
+function checkGameState(){
+  const pilesEmpty = piles.every(p => p.length===0);
+  if(pilesEmpty){ triggerWin(); return; }
+
+  const topDiscard = discard[discard.length-1];
+  let canMove = false;
+  for(let pile of piles){
+	if(pile.length===0) continue;
+	const topCard = pile[pile.length-1];
+	if(!topDiscard || topCard.suit===topDiscard.suit || topCard.value===topDiscard.value){
+	  canMove = true;
+	  break;
+	}
+  }
+  if(deck.length===0 && !canMove){ triggerLose(); }
+}
+
+// --- Init ---
 createDeck(); setupPiles(); drawCards(8); renderAll();
 </script>
 </body>
