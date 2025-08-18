@@ -62,6 +62,7 @@ canvas#nebulaCanvas { position:absolute; top:0; left:0; width:100%; height:100%;
 	display:flex;
 	justify-content:space-around;
 	z-index:1000;
+	flex-wrap:wrap;
 }
 .button {
 	background:rgba(255,255,255,0.2);
@@ -71,7 +72,9 @@ canvas#nebulaCanvas { position:absolute; top:0; left:0; width:100%; height:100%;
 	font-size:16px;
 	touch-action: manipulation;
 	user-select:none;
+	margin:5px;
 }
+
 #joystick {
 	position:absolute;
 	bottom:80px;
@@ -109,6 +112,8 @@ canvas#nebulaCanvas { position:absolute; top:0; left:0; width:100%; height:100%;
 <div id="mobileControls">
 	<div class="button" data-key="w">Forward</div>
 	<div class="button" data-key="s">Backward</div>
+	<div class="button" data-key="a">Strafe Left</div>
+	<div class="button" data-key="d">Strafe Right</div>
 	<div class="button" data-key="space">Up</div>
 	<div class="button" data-key="shift">Down</div>
 	<div class="button" data-key="q">Roll Left</div>
@@ -138,34 +143,27 @@ let mouse = {dx:0, dy:0};
 // ---------- INPUT ----------
 document.addEventListener('keydown', e=>{
 	if(paused) return;
-	switch(e.code){
-		case 'KeyW': keys.w=1; break; case 'KeyS': keys.s=1; break;
-		case 'KeyA': keys.a=1; break; case 'KeyD': keys.d=1; break;
-		case 'Space': keys.space=1; break; case 'ShiftLeft': keys.shift=1; break;
-		case 'KeyQ': keys.q=1; break; case 'KeyE': keys.e=1; break;
-	}
-	if(activeQTE){ let pressed=false;
+	if(e.code==='KeyW') keys.w=1; if(e.code==='KeyS') keys.s=1;
+	if(e.code==='KeyA') keys.a=1; if(e.code==='KeyD') keys.d=1;
+	if(e.code==='Space') keys.space=1; if(e.code==='ShiftLeft') keys.shift=1;
+	if(e.code==='KeyQ') keys.q=1; if(e.code==='KeyE') keys.e=1;
+	if(activeQTE){
+		let pressed=false;
 		switch(activeQTE.key){
 			case 'w': pressed=keys.w; break; case 's': pressed=keys.s; break;
 			case 'a': pressed=keys.a; break; case 'd': pressed=keys.d; break;
 			case ' ': pressed=keys.space; break; case 'Shift': pressed=keys.shift; break;
 			case 'q': pressed=keys.q; break; case 'e': pressed=keys.e; break;
 		}
-		if(pressed){ handleQTE(true); }
+		if(pressed) handleQTE(true);
 	}
 });
 document.addEventListener('keyup', e=>{
-	switch(e.code){
-		case 'KeyW': keys.w=0; case 'KeyS': keys.s=0;
-		case 'KeyA': keys.a=0; case 'KeyD': keys.d=0;
-		case 'Space': keys.space=0; case 'ShiftLeft': keys.shift=0;
-		case 'KeyQ': keys.q=0; case 'KeyE': keys.e=0;
-	}
+	if(e.code==='KeyW') keys.w=0; if(e.code==='KeyS') keys.s=0;
+	if(e.code==='KeyA') keys.a=0; if(e.code==='KeyD') keys.d=0;
+	if(e.code==='Space') keys.space=0; if(e.code==='ShiftLeft') keys.shift=0;
+	if(e.code==='KeyQ') keys.q=0; if(e.code==='KeyE') keys.e=0;
 });
-document.body.addEventListener('mousemove', e=>{
-	if(!paused){ mouse.dx = e.movementX*0.003; mouse.dy = e.movementY*0.003; }
-});
-document.body.addEventListener('click', ()=>document.body.requestPointerLock());
 
 // ---------- TOUCH BUTTONS ----------
 document.querySelectorAll('.button').forEach(btn=>{
@@ -196,27 +194,42 @@ knob.addEventListener('touchmove', e=>{
 	if(!joystickData.active) return;
 	const touch = e.touches[0];
 	const rect = joystick.getBoundingClientRect();
-	let x = touch.clientX - rect.left - 60; // center at 0
+	let x = touch.clientX - rect.left - 60;
 	let y = touch.clientY - rect.top - 60;
 	let max = 50;
 	let dist = Math.sqrt(x*x+y*y);
 	if(dist>max){ x=x*max/dist; y=y*max/dist; }
 	knob.style.left=35+x+'px'; knob.style.top=35+y+'px';
-	// Map to keys
 	keys.w = y< -10?1:0;
 	keys.s = y> 10?1:0;
 	keys.a = x< -10?1:0;
 	keys.d = x> 10?1:0;
 });
 
+// ---------- SWIPE LOOK ----------
+let touchLook = {active:false, lastX:0, lastY:0};
+document.addEventListener('touchstart', e=>{
+	if(e.touches.length===1 && e.target.id!=='joystickKnob' && !e.target.classList.contains('button')){
+		touchLook.active=true;
+		touchLook.lastX = e.touches[0].clientX;
+		touchLook.lastY = e.touches[0].clientY;
+	}
+});
+document.addEventListener('touchmove', e=>{
+	if(!touchLook.active) return;
+	let dx = e.touches[0].clientX - touchLook.lastX;
+	let dy = e.touches[0].clientY - touchLook.lastY;
+	mouse.dx = dx*0.005; mouse.dy = dy*0.005;
+	touchLook.lastX = e.touches[0].clientX;
+	touchLook.lastY = e.touches[0].clientY;
+});
+document.addEventListener('touchend', e=>{
+	touchLook.active=false;
+});
+
 // ---------- OVERLAYS ----------
 const overlay = document.getElementById("mouseOverlay");
 const epilepsyOverlay = document.getElementById("epilepsyOverlay");
-window.addEventListener('mouseout', e=>{
-	if(!e.relatedTarget && !paused){
-		paused=true; overlay.style.display='block'; epilepsyOverlay.style.display='flex';
-	}
-});
 overlay.addEventListener('click', ()=>{
 	paused=false; overlay.style.display='none'; epilepsyOverlay.style.display='none';
 });
@@ -229,11 +242,7 @@ let stars=[];
 function generateStars(count=200){
 	stars=[];
 	for(let i=0;i<count;i++){
-		stars.push({
-			x:(Math.random()-0.5)*3000, y:(Math.random()-0.5)*3000,
-			z:(Math.random()-0.5)*3000, size: Math.random()*2+1,
-			color: `hsl(${Math.random()*360},60%,80%)`
-		});
+		stars.push({x:(Math.random()-0.5)*3000, y:(Math.random()-0.5)*3000, z:(Math.random()-0.5)*3000, size: Math.random()*2+1, color: `hsl(${Math.random()*360},60%,80%)`});
 	}
 }
 
@@ -245,23 +254,15 @@ function generateScene(){
 	sceneColors.object1 = randomColor();
 	sceneColors.object2 = randomColor();
 	sceneColors.nebula = [];
-	for(let i=0;i<50;i++){
-		sceneColors.nebula.push(`hsla(${Math.random()*360},60%,40%,0.1)`);
-	}
-
+	for(let i=0;i<50;i++){ sceneColors.nebula.push(`hsla(${Math.random()*360},60%,40%,0.1)`); }
 	for(let i=0;i<70;i++){
-		objects.push({
-			x:(Math.random()-0.5)*2000, y:(Math.random()-0.5)*2000, z:(Math.random()-0.5)*2000,
-			size:Math.random()*40+15,
-			color: Math.random()<0.5?sceneColors.object1:sceneColors.object2
-		});
+		objects.push({x:(Math.random()-0.5)*2000, y:(Math.random()-0.5)*2000, z:(Math.random()-0.5)*2000, size:Math.random()*40+15, color: Math.random()<0.5?sceneColors.object1:sceneColors.object2});
 	}
-
 	activeQTE = QTE_CHOICES[Math.floor(Math.random()*QTE_CHOICES.length)];
 	document.getElementById("qteDisplay").innerText = "QTE: "+activeQTE.action;
 }
 
-// ---------- QTE HANDLER ----------
+// ---------- QTE ----------
 function handleQTE(success){ if(success){ score++; }
 	document.getElementById("scoreDisplay").innerText = "Score: "+score;
 	generateScene();
@@ -272,21 +273,13 @@ const nebulaCanvas = document.getElementById("nebulaCanvas");
 const nebCtx = nebulaCanvas.getContext("2d");
 nebulaCanvas.width = window.innerWidth;
 nebulaCanvas.height = window.innerHeight;
-
 let nebulaParticles=[];
 function generateNebulaParticles(){
 	nebulaParticles=[];
 	for(let i=0;i<sceneColors.nebula.length;i++){
-		nebulaParticles.push({
-			x: Math.random()*window.innerWidth,
-			y: Math.random()*window.innerHeight,
-			radius: Math.random()*100+50,
-			color: sceneColors.nebula[i],
-			dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2
-		});
+		nebulaParticles.push({x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, radius: Math.random()*100+50, color: sceneColors.nebula[i], dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2});
 	}
 }
-
 function renderNebula(){
 	nebCtx.clearRect(0,0,nebulaCanvas.width,nebulaCanvas.height);
 	nebulaParticles.forEach(p=>{
@@ -312,7 +305,7 @@ function update(){
 	camera.roll += (keys.q - keys.e)*0.02;
 }
 
-// ---------- MAIN LOOP ----------
+// ---------- RENDER ----------
 function renderScene(){
 	const container = document.getElementById("sceneContainer");
 	container.innerHTML="";
@@ -320,7 +313,6 @@ function renderScene(){
 	const cosYaw=Math.cos(camera.yaw), sinYaw=Math.sin(camera.yaw);
 	const cosRoll=Math.cos(camera.roll), sinRoll=Math.sin(camera.roll);
 
-	// Stars
 	stars.forEach(s=>{
 		let dx=s.x-camera.x, dy=s.y-camera.y, dz=s.z-camera.z;
 		let x1=dx*cosYaw - dz*sinYaw, z1=dx*sinYaw + dz*cosYaw, y1=dy;
@@ -336,7 +328,6 @@ function renderScene(){
 		container.appendChild(div);
 	});
 
-	// Objects
 	objects.forEach(obj=>{
 		let dx=obj.x-camera.x, dy=obj.y-camera.y, dz=obj.z-camera.z;
 		let x1=dx*cosYaw - dz*sinYaw, z1=dx*sinYaw + dz*cosYaw, y1=dy;
