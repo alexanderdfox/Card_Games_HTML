@@ -327,19 +327,19 @@ function renderDeck(){
   deckDiv.innerText = deck.length ? deck.length + ' 🎴' : '0 🎴';
   
   // Discard display
-  if(discard.length > 0){
+if(discard.length > 0){
     const lastCard = discard[discard.length-1];
+    discardDiv.className = 'card ' + lastCard.color; // always card + color
     discardDiv.innerText = lastCard.emoji;
-    discardDiv.className = 'card ' + lastCard.color; // apply card font & color
-    discardDiv.style.fontSize = '125px'; // same as cards
+    discardDiv.style.fontSize = '125px';
     discardDiv.style.lineHeight = '1';
     discardDiv.style.display = 'grid';
     discardDiv.style.placeItems = 'center';
-  } else {
+} else {
+    discardDiv.className = 'card'; // keep card class
     discardDiv.innerText = '🂠';
-    discardDiv.className = ''; // reset class
-    discardDiv.style.fontSize = '125px'; // original deck size
-  }
+    discardDiv.style.color = 'black'; // default color
+}
 }
 
 // --- Card Logic ---
