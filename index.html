@@ -95,6 +95,7 @@ h1 {
 .suit-black { color:#111; }
 
 /* --- Deck & Discard --- */
+/* --- Deck & Discard --- */
 #deckPile {
   display:flex;
   justify-content:center;
@@ -103,7 +104,7 @@ h1 {
   margin-top:6px;
 }
 
-#deck, #discard {
+#deck {
   width:96px;
   height:150px;
   border-radius:12px;
@@ -116,6 +117,21 @@ h1 {
   box-shadow:2px 2px 8px #00000066;
   position:relative;
   cursor:pointer;
+}
+
+/* Discard pile matches card styling */
+#discard {
+  width:92px;
+  height:140px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  font-size:125px;
+  line-height:1;
+  background: linear-gradient(to bottom, white, whitesmoke);
+  border: 2px solid #111;
+  box-shadow: 2px 6px 12px rgba(0,0,0,0.5);
+  color: black; /* will be overridden by JS for suit-red / suit-black */
 }
 
 /* --- Controls --- */
